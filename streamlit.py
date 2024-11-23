@@ -6,18 +6,16 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import PyPDFLoader
 import base64
 
-# Load environment variables
+
 load_dotenv()
 
-# Model and tokenizer loading
+
 model_name = "MBZUAI/LaMini-Flan-T5-248M"
 token = os.getenv("api_key")
 
-#model and tokenizer loading
 tokenizer = T5Tokenizer.from_pretrained(model_name, legacy=False)
 model = T5ForConditionalGeneration.from_pretrained(model_name)
 
-# File loader and preprocessing
 def file_preprocessing(file):
     loader = PyPDFLoader(file)
     pages = loader.load_and_split()
@@ -28,7 +26,6 @@ def file_preprocessing(file):
         final_texts += text.page_content
     return final_texts
 
-#LLM pipeline
 def llm_pipeline(filepath):
     pipe_sum = pipeline(
         'summarization',
@@ -42,7 +39,7 @@ def llm_pipeline(filepath):
     return result
 
 @st.cache_data
-#function to display the PDF of a given file 
+
 def displayPDF(file):
     # Opening file from file path
     with open(file, "rb") as f:
