@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PDF RAG Q&A</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <h1 class="text-2xl font-bold mb-4">PDF Question Answering</h1>
+        
+        <div class="mb-4">
+            <input type="file" id="pdfUpload" accept=".pdf" class="mb-2">
+            <button onclick="uploadPDF()" class="bg-blue-500 text-white px-4 py-2 rounded">Upload PDF</button>
+        </div>
+        
+        <div class="mb-4">
+            <input type="text" id="questionInput" placeholder="Ask a question" class="w-full p-2 border rounded">
+            <button onclick="askQuestion()" class="mt-2 bg-green-500 text-white px-4 py-2 rounded">Ask</button>
+        </div>
+        
+        <div id="answer" class="bg-white p-4 rounded shadow"></div>
+    </div>
+
+    <script>
+        function uploadPDF() {
+            const fileInput = document.getElementById('pdfUpload');
+            const file = fileInput.files[0];
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || data.error);
+            });
+        }
+        
+        function askQuestion() {
+            const question = document.getElementById('questionInput').value;
+            const answerDiv = document.getElementById('answer');
+            
+            fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question })
+            })
+            .then(response => response.json())
+            .then(data => {
+                answerDiv.textContent = data.answer || data.error;
+            });
+        }
+    </script>
+</body>
+</html>
