@@ -4,10 +4,12 @@ from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
 import requests
-
+from dotenv import load_dotenv
+import os
+load_dotenv()
 # Hugging Face API details
 HF_API_URL = "https://api-inference.huggingface.co/models/mistral-ai/mistral-7b-v0"
-HF_API_KEY = "YOUR_HUGGINGFACE_API_KEY"
+HF_API_KEY = os.getenv("HF_TOKEN")
 
 headers = {"Authorization": f"Bearer {HF_API_KEY}"}
 
