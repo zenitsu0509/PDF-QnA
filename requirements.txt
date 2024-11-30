@@ -1,7 +1,4 @@
-flask
-pymupdf
-sentence-transformers
-faiss-cpu
-torch 
-mistralai
-python-dotenv
+streamlit 
+PyPDF2 
+transformers 
+requests

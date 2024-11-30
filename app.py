@@ -1,52 +1,80 @@
-from flask import Flask, render_template, request, jsonify
-from werkzeug.utils import secure_filename
-import os
+import streamlit as st
+from PyPDF2 import PdfReader
+from sentence_transformers import SentenceTransformer
+import faiss
+import numpy as np
+import requests
 
-from document_processor import PDFProcessor
-from vectorstore import VectorStore
-from rag_engine import RAGEngine
+# Hugging Face API details
+HF_API_URL = "https://api-inference.huggingface.co/models/mistral-ai/mistral-7b-v0"
+HF_API_KEY = "YOUR_HUGGINGFACE_API_KEY"
 
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'uploads/'
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+headers = {"Authorization": f"Bearer {HF_API_KEY}"}
 
-# Global vector store and RAG engine
-vector_store = VectorStore()
-rag_engine = RAGEngine(vector_store)
+# Initialize SentenceTransformer model for embedding
+embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# Function to query Hugging Face API
+def query_hf_api(context, question):
+    payload = {"inputs": {"context": context, "question": question}}
+    response = requests.post(HF_API_URL, headers=headers, json=payload)
+    return response.json()
 
-@app.route('/upload', methods=['POST'])
-def upload_pdf():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file uploaded'}), 400
-    
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
-    
-    if file:
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        
-        # Process PDF
-        document_chunks = PDFProcessor.extract_text_from_pdf(filepath)
-        vector_store.add_documents(document_chunks)
-        
-        return jsonify({'message': 'PDF uploaded and processed successfully'}), 200
+# Extract text from PDF
+def extract_text_from_pdf(pdf_file):
+    pdf_reader = PdfReader(pdf_file)
+    text = ""
+    for page in pdf_reader.pages:
+        text += page.extract_text()
+    return text
 
-@app.route('/ask', methods=['POST'])
-def ask_question():
-    query = request.json.get('question', '')
-    
-    if not query:
-        return jsonify({'error': 'No question provided'}), 400
-    
-    answer = rag_engine.answer_question(query)
-    return jsonify({'answer': answer})
+# Build FAISS index
+def build_faiss_index(text_chunks):
+    embeddings = embedder.encode(text_chunks, convert_to_tensor=False)
+    dimension = embeddings.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+    index.add(np.array(embeddings))
+    return index, embeddings
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# Retrieve most relevant chunks
+def retrieve_relevant_chunks(question, text_chunks, index, top_k=3):
+    question_embedding = embedder.encode([question], convert_to_tensor=False)
+    distances, indices = index.search(np.array(question_embedding), top_k)
+    relevant_chunks = [text_chunks[i] for i in indices[0]]
+    return " ".join(relevant_chunks)
+
+# Streamlit app
+st.title("PDF Question Answering with FAISS")
+st.subheader("Upload a PDF and ask questions based on its content")
+
+uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
+if uploaded_file:
+    with st.spinner("Extracting text from PDF..."):
+        pdf_text = extract_text_from_pdf(uploaded_file)
+    st.success("Text extracted from PDF!")
+
+    if st.checkbox("Show extracted text"):
+        st.text_area("Extracted Text", pdf_text, height=300)
+
+    # Split text into chunks
+    chunk_size = 500  # Adjust based on your needs
+    text_chunks = [pdf_text[i:i+chunk_size] for i in range(0, len(pdf_text), chunk_size)]
+
+    with st.spinner("Building FAISS index..."):
+        index, _ = build_faiss_index(text_chunks)
+    st.success("FAISS index built!")
+
+    question = st.text_input("Enter your question")
+    if st.button("Get Answer"):
+        if question.strip() == "":
+            st.error("Please enter a question.")
+        else:
+            with st.spinner("Retrieving relevant chunks..."):
+                context = retrieve_relevant_chunks(question, text_chunks, index)
+            
+            with st.spinner("Generating answer..."):
+                result = query_hf_api(context, question)
+                answer = result.get("answer", "No answer found.")
+            
+            st.success("Answer Generated!")
+            st.write(f"**Answer:** {answer}")
