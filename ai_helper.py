@@ -24,7 +24,7 @@ class PDFQuestionAnswerer:
         """
         # Initialize Cohere Embeddings
         self.embeds = CohereEmbeddings(
-            cohere_api_key=st.secrets["COHERE_API_KEY"]
+            cohere_api_key=st.secrets["COHERE_API_KEY"],
             model=embedding_model
         )
         
