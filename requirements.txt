@@ -6,3 +6,5 @@ langchain-cohere
 faiss-cpu
 langchain-community
 langchain-cohere
+streamlit
+
