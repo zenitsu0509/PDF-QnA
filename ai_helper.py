@@ -24,7 +24,7 @@ class PDFQuestionAnswerer:
         """
         # Initialize Cohere Embeddings
         self.embeds = CohereEmbeddings(
-            cohere_api_key=os.getenv("COHERE_API_KEY"),
+            cohere_api_key=st.secrets["COHERE_API_KEY"]
             model=embedding_model
         )
         
@@ -32,7 +32,7 @@ class PDFQuestionAnswerer:
         self.llm = Cohere(
             model=llm_model, 
             temperature=0.9,
-            cohere_api_key=st.secrets("COHERE_API_KEY")
+            cohere_api_key=st.secrets["COHERE_API_KEY"]
         )
         
         # Initialize vector store and chain as None
