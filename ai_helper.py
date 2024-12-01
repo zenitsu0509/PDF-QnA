@@ -9,6 +9,7 @@ from langchain_community.llms import Cohere
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from typing import List, Optional
+import streamlit as st
 
 load_dotenv()
 
@@ -31,7 +32,7 @@ class PDFQuestionAnswerer:
         self.llm = Cohere(
             model=llm_model, 
             temperature=0.9,
-            cohere_api_key=os.getenv("COHERE_API_KEY")
+            cohere_api_key=st.secrets("COHERE_API_KEY")
         )
         
         # Initialize vector store and chain as None
