@@ -47,7 +47,6 @@ def main():
         else:
             st.write("No search history yet.")
 
-    # Main content
     question = st.text_input("Ask a question about the PDF")
 
     if st.button("Get Answer"):
