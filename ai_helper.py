@@ -17,7 +17,6 @@ class PDFQuestionAnswerer:
     def __init__(self, embedding_model: str = "embed-english-v3.0", 
                  llm_model: str = "command-nightly"):
 
-        # Initialize Cohere Embeddings
         self.embeds = CohereEmbeddings(
             cohere_api_key=st.secrets["COHERE_API_KEY"],
             model=embedding_model
