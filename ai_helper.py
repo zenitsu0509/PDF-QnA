@@ -87,7 +87,7 @@ Do Not Hallucinate."""
         # Store current PDF path
         self.current_pdf_path = pdf_path
         
-        return len(chunked_docs)  # Return number of document chunks
+        return len(chunked_docs)  
     
     def ask_question(self, question: str) -> str:
         """
