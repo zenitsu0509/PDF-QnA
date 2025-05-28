@@ -72,7 +72,7 @@ class PDFQuestionAnswerer:
             }
         )
         
-        # Define prompt template
+
         prompt_template = """Text: {context}
 
 Question: {question}
