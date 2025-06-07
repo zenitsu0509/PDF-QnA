@@ -75,19 +75,7 @@ class PDFQuestionAnswerer:
 
         prompt_template = """Text: {context}
 
-Question: {question}
 
-Answer the question based on the PDF Document provided. If the text doesn't contain the answer, reply that the answer is not available.
-Do Not Hallucinate."""
-        prompt = PromptTemplate.from_template(prompt_template)
-        
-        # Create chain
-        self.chain = retrievable | prompt | self.llm | StrOutputParser()
-        
-        # Store current PDF path
-        self.current_pdf_path = pdf_path
-        
-        return len(chunked_docs)  
     
     def ask_question(self, question: str) -> str:
         """
