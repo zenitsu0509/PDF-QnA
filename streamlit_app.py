@@ -5,7 +5,6 @@ from ai_helper import PDFQuestionAnswerer
 def main():
     st.title("📄 PDF Question Answering App")
 
-    # Initialize session state variables
     if "pdf_qa" not in st.session_state:
         st.session_state.pdf_qa = PDFQuestionAnswerer()
     
